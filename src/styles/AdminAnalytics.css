@@ -1,0 +1,122 @@
+.admin-analytics {
+  padding: 2rem 0;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.analytics-header h4 {
+  color: #8B4513;
+  font-weight: 600;
+}
+
+.period-select {
+  min-width: 150px;
+}
+
+.metrics-grid {
+  margin-bottom: 3rem;
+}
+
+.metric-card {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.metric-icon {
+  font-size: 3rem !important;
+  padding: 0.5rem;
+  border-radius: 50%;
+  color: white;
+}
+
+.revenue-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.orders-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.users-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.categories-icon {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.analytics-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.analytics-card .MuiCardContent-root {
+  padding: 2rem;
+}
+
+.analytics-card h6 {
+  color: #8B4513;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.product-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 8px !important;
+}
+
+.sales-trend {
+  min-height: 200px;
+}
+
+.MuiTableCell-head {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.MuiTableRow-root:hover {
+  background-color: #f9f9f9;
+}
+
+@media (max-width: 768px) {
+  .analytics-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .analytics-header h4 {
+    font-size: 1.75rem;
+  }
+  
+  .metric-icon {
+    font-size: 2rem !important;
+  }
+  
+  .product-info {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}

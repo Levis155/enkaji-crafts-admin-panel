@@ -1,0 +1,91 @@
+.admin-users {
+  padding: 2rem 0;
+}
+
+.admin-users h4 {
+  color: #8B4513;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+.search-card {
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-field {
+  width: 100%;
+}
+
+.users-table-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-avatar {
+  background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.orders-chip {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+  color: white !important;
+}
+
+.reviews-chip {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+  color: white !important;
+}
+
+.role-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-switch {
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.activate-btn {
+  color: #4caf50 !important;
+}
+
+.deactivate-btn {
+  color: #f44336 !important;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .user-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .role-cell {
+    align-items: stretch;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+}
