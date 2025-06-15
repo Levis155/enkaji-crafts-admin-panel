@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAdminAuth } from "./hooks/useAdminAuth";
+import Protected from "./protected/Protected";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -10,24 +10,11 @@ import ReviewsPage from "./pages/ReviewsPage";
 import SettingsPage from "./pages/SettingsPage";
 
 function App() {
-  const { isAuthenticated, isLoading } = useAdminAuth();
-
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
   return (
-    <Layout>
-      <Routes>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+
+      <Route element={<Protected><Layout /></Protected>}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/products" element={<ProductsPage />} />
@@ -36,8 +23,8 @@ function App() {
         <Route path="/reviews" element={<ReviewsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </Layout>
+      </Route>
+    </Routes>
   );
 }
 

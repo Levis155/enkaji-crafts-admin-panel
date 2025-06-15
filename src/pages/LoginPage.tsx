@@ -1,38 +1,49 @@
-import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import apiUrl from '../utils/apiUrl';
-import { useAuthStore } from '../stores/authStore';
-import { LoginCredentials } from '../types';
+import React, { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { Alert, CircularProgress } from "@mui/material";
+import apiUrl from "../utils/apiUrl";
+import useUserStore from "../stores/userStore";
+import { LoginCredentials } from "../types";
 import "../styles/LoginPage.css";
 
 const LoginPage: React.FC = () => {
+  const setUserInfo = useUserStore((state) => state.setUserInfo);
+  const user = useUserStore((state) => state.user);
+  const [formError, setFormError] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    emailAddress: '',
-    password: '',
+    emailAddress: "",
+    password: "",
   });
-  
-  const { setAuth } = useAuthStore();
+  const navigate = useNavigate();
 
   const loginMutation = useMutation({
-    mutationFn: async() => {
-      const response = await axios.post(`${apiUrl}/admin/auth/login`, credentials, {withCredentials:true});
+    mutationFn: async () => {
+      const response = await axios.post(`${apiUrl}/admin/auth/login`, credentials, {
+        withCredentials: true,
+      });
       return response.data;
     },
     onSuccess: (data) => {
-      if (data.user && data.user.isAdmin && data.token) {
-        setAuth(data.user, data.token);
-        toast.success('Welcome to Enkaji Admin Panel!');
+      setUserInfo(data);
+      toast.success("Logged in successfully.");
+      navigate("/");
+    },
+    onError: (err) => {
+      if (axios.isAxiosError(err)) {
+        const serverMessage = err.response?.data.message;
+        setFormError(serverMessage);
       } else {
-        toast.error('Access denied. Admin privileges required.');
+        setFormError(`Something went wrong.${err}`);
       }
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Login failed';
-      toast.error(message);
-    },
   });
+
+  useEffect(() => {
+    console.log("User updated:", user);
+  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +67,11 @@ const LoginPage: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
+          {formError && (
+            <Alert severity="error" sx={{ mb: "1rem", fontSize: "0.8rem" }}>
+              {formError}
+            </Alert>
+          )}
           <div className="form-group">
             <label htmlFor="emailAddress" className="form-label">
               Email Address
@@ -93,7 +109,11 @@ const LoginPage: React.FC = () => {
             className="btn btn-primary btn-full"
             disabled={loginMutation.isPending}
           >
-            {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+            {loginMutation.isPending ? (
+              <CircularProgress size="1.3rem" sx={{ color: "white" }} />
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 

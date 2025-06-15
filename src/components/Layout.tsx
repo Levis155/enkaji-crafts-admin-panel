@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { 
   FaTachometerAlt, 
   FaBox, 
@@ -11,16 +11,13 @@ import {
   FaBars,
   FaTimes
 } from 'react-icons/fa';
-import { useAuthStore } from '../stores/authStore';
+import useUserStore from '../stores/userStore';
 import { useState } from 'react';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const location = useLocation();
-  const { user, clearAuth } = useAuthStore();
+  const user = useUserStore(state => state.user);
+  const removeUserInfo = useUserStore(state => state.removeUserInfo);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
@@ -33,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   ];
 
   const handleLogout = () => {
-    clearAuth();
+    removeUserInfo();
   };
 
   return (
@@ -95,7 +92,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Content Area */}
         <div className="content-area">
-          {children}
+          <Outlet />
         </div>
       </main>
 

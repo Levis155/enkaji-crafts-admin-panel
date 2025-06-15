@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { FaSave, FaEye, FaEyeSlash, FaUser, FaLock, FaCog } from 'react-icons/fa';
-import { useAuthStore } from '../stores/authStore';
+import useUserStore from '../stores/userStore';
 import "../styles/SettingsPage.css";
 
 const SettingsPage: React.FC = () => {
-  const { user } = useAuthStore();
+  const user = useUserStore(state => state.user);
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -29,7 +29,7 @@ const SettingsPage: React.FC = () => {
     reviewNotifications: false,
     maintenanceMode: false,
     defaultShippingCharge: 120,
-    defaultCurrency: 'USD',
+    defaultCurrency: 'KES',
     maxOrderItems: 10,
   });
 

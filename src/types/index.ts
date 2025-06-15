@@ -12,6 +12,13 @@ export interface User {
   isDeleted: boolean;
 }
 
+export interface AdminUser {
+  id: string;
+  fullName: string;
+  emailAddress: string;
+  isAdmin: boolean;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -137,7 +144,7 @@ export interface PaginationParams {
   limit?: number;
   search?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface PaginatedResponse<T> {
