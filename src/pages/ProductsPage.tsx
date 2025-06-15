@@ -1,87 +1,118 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from 'react-icons/fa';
-import { adminService } from '../services/adminService';
-import { Product } from '../types';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from "react-icons/fa";
+import apiUrl from "../utils/apiUrl";
+import { Product } from "../types";
+import "../styles/AdminProducts.css";
 
 const ProductsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view'>('create');
-  
+  const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
+    "create"
+  );
+
   const queryClient = useQueryClient();
   const limit = 10;
 
   const { data: productsData, isLoading } = useQuery({
-    queryKey: ['products', currentPage, searchTerm],
-    queryFn: () => adminService.getProducts({
-      page: currentPage,
-      limit,
-      search: searchTerm
-    }),
+    queryKey: ["products", currentPage, searchTerm],
+    queryFn: async () => {
+      const response = await axios.get(`${apiUrl}/admin/products`, {
+        params: {
+          page: currentPage,
+          limit,
+          search: searchTerm,
+        },
+        withCredentials: true,
+      });
+      return response.data;
+    },
   });
 
   const deleteProductMutation = useMutation({
-    mutationFn: adminService.deleteProduct,
+    mutationFn: async (id: string) => {
+      await axios.delete(`${apiUrl}/admin/products/${id}`, {
+        withCredentials: true,
+      });
+    },
     onSuccess: () => {
-      toast.success('Product deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success("Product deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete product');
+      toast.error(error.response?.data?.message || "Failed to delete product");
     },
   });
 
   const createProductMutation = useMutation({
-    mutationFn: adminService.createProduct,
+    mutationFn: async (product: Partial<Product>) => {
+      const response = await axios.post(`${apiUrl}/admin/products`, product, {
+        withCredentials: true,
+      });
+      return response.data;
+    },
     onSuccess: () => {
-      toast.success('Product created successfully');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success("Product created successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       setShowModal(false);
       setSelectedProduct(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create product');
+      toast.error(error.response?.data?.message || "Failed to create product");
     },
   });
 
   const updateProductMutation = useMutation({
-    mutationFn: ({ id, product }: { id: string; product: Partial<Product> }) =>
-      adminService.updateProduct(id, product),
+    mutationFn: async ({
+      id,
+      product,
+    }: {
+      id: string;
+      product: Partial<Product>;
+    }) => {
+      const response = await axios.put(
+        `${apiUrl}/admin/products/${id}`,
+        product,
+        { withCredentials: true }
+      );
+      return response.data;
+    },
     onSuccess: () => {
-      toast.success('Product updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success("Product updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       setShowModal(false);
       setSelectedProduct(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update product');
+      toast.error(error.response?.data?.message || "Failed to update product");
     },
   });
 
   const handleCreateProduct = () => {
-    setModalMode('create');
+    setModalMode("create");
     setSelectedProduct(null);
     setShowModal(true);
   };
 
   const handleEditProduct = (product: Product) => {
-    setModalMode('edit');
+    setModalMode("edit");
     setSelectedProduct(product);
     setShowModal(true);
   };
 
   const handleViewProduct = (product: Product) => {
-    setModalMode('view');
+    setModalMode("view");
     setSelectedProduct(product);
     setShowModal(true);
   };
 
   const handleDeleteProduct = (productId: string) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm("Are you sure you want to delete this product?")) {
       deleteProductMutation.mutate(productId);
     }
   };
@@ -90,21 +121,25 @@ const ProductsPage: React.FC = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const productData = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string,
-      price: parseFloat(formData.get('price') as string),
-      originalPrice: parseFloat(formData.get('originalPrice') as string) || undefined,
-      image: formData.get('image') as string,
-      category: formData.get('category') as string,
-      specifications: formData.get('specifications') as string,
-      packageContent: formData.get('packageContent') as string,
-      inStock: formData.get('inStock') === 'true',
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      price: parseFloat(formData.get("price") as string),
+      originalPrice:
+        parseFloat(formData.get("originalPrice") as string) || undefined,
+      image: formData.get("image") as string,
+      category: formData.get("category") as string,
+      specifications: formData.get("specifications") as string,
+      packageContent: formData.get("packageContent") as string,
+      inStock: formData.get("inStock") === "true",
     };
 
-    if (modalMode === 'create') {
+    if (modalMode === "create") {
       createProductMutation.mutate(productData);
-    } else if (modalMode === 'edit' && selectedProduct) {
-      updateProductMutation.mutate({ id: selectedProduct.id, product: productData });
+    } else if (modalMode === "edit" && selectedProduct) {
+      updateProductMutation.mutate({
+        id: selectedProduct.id,
+        product: productData,
+      });
     }
   };
 
@@ -159,11 +194,11 @@ const ProductsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {products.map((product:Product) => (
               <tr key={product.id}>
                 <td>
-                  <img 
-                    src={product.image} 
+                  <img
+                    src={product.image}
                     alt={product.name}
                     className="product-image"
                   />
@@ -171,7 +206,9 @@ const ProductsPage: React.FC = () => {
                 <td>
                   <div>
                     <div className="product-name">{product.name}</div>
-                    <div className="product-id">ID: {product.id.slice(0, 8)}</div>
+                    <div className="product-id">
+                      ID: {product.id.slice(0, 8)}
+                    </div>
                   </div>
                 </td>
                 <td>
@@ -181,18 +218,26 @@ const ProductsPage: React.FC = () => {
                   <div>
                     <div className="price">${product.price}</div>
                     {product.originalPrice && (
-                      <div className="original-price">${product.originalPrice}</div>
+                      <div className="original-price">
+                        ${product.originalPrice}
+                      </div>
                     )}
                   </div>
                 </td>
                 <td>
-                  <span className={`status-badge ${product.inStock ? 'status-in-stock' : 'status-out-of-stock'}`}>
-                    {product.inStock ? 'In Stock' : 'Out of Stock'}
+                  <span
+                    className={`status-badge ${
+                      product.inStock
+                        ? "status-in-stock"
+                        : "status-out-of-stock"
+                    }`}
+                  >
+                    {product.inStock ? "In Stock" : "Out of Stock"}
                   </span>
                 </td>
                 <td>
                   <div className="rating">
-                    ⭐ {product.averageRating?.toFixed(1) || 'N/A'}
+                    ⭐ {product.averageRating?.toFixed(1) || "N/A"}
                   </div>
                 </td>
                 <td>
@@ -231,7 +276,7 @@ const ProductsPage: React.FC = () => {
         <div className="pagination">
           <button
             className="btn btn-secondary"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             Previous
@@ -241,7 +286,9 @@ const ProductsPage: React.FC = () => {
           </span>
           <button
             className="btn btn-secondary"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Next
@@ -255,9 +302,9 @@ const ProductsPage: React.FC = () => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
-                {modalMode === 'create' && 'Add New Product'}
-                {modalMode === 'edit' && 'Edit Product'}
-                {modalMode === 'view' && 'Product Details'}
+                {modalMode === "create" && "Add New Product"}
+                {modalMode === "edit" && "Edit Product"}
+                {modalMode === "view" && "Product Details"}
               </h3>
               <button
                 className="modal-close"
@@ -266,21 +313,43 @@ const ProductsPage: React.FC = () => {
                 ×
               </button>
             </div>
-            
+
             <div className="modal-body">
-              {modalMode === 'view' ? (
+              {modalMode === "view" ? (
                 <div className="product-details">
-                  <img src={selectedProduct?.image} alt={selectedProduct?.name} className="detail-image" />
+                  <img
+                    src={selectedProduct?.image}
+                    alt={selectedProduct?.name}
+                    className="detail-image"
+                  />
                   <h3>{selectedProduct?.name}</h3>
-                  <p><strong>Category:</strong> {selectedProduct?.category}</p>
-                  <p><strong>Price:</strong> ${selectedProduct?.price}</p>
+                  <p>
+                    <strong>Category:</strong> {selectedProduct?.category}
+                  </p>
+                  <p>
+                    <strong>Price:</strong> ${selectedProduct?.price}
+                  </p>
                   {selectedProduct?.originalPrice && (
-                    <p><strong>Original Price:</strong> ${selectedProduct.originalPrice}</p>
+                    <p>
+                      <strong>Original Price:</strong> $
+                      {selectedProduct.originalPrice}
+                    </p>
                   )}
-                  <p><strong>Description:</strong> {selectedProduct?.description}</p>
-                  <p><strong>Specifications:</strong> {selectedProduct?.specifications}</p>
-                  <p><strong>Package Content:</strong> {selectedProduct?.packageContent}</p>
-                  <p><strong>Status:</strong> {selectedProduct?.inStock ? 'In Stock' : 'Out of Stock'}</p>
+                  <p>
+                    <strong>Description:</strong> {selectedProduct?.description}
+                  </p>
+                  <p>
+                    <strong>Specifications:</strong>{" "}
+                    {selectedProduct?.specifications}
+                  </p>
+                  <p>
+                    <strong>Package Content:</strong>{" "}
+                    {selectedProduct?.packageContent}
+                  </p>
+                  <p>
+                    <strong>Status:</strong>{" "}
+                    {selectedProduct?.inStock ? "In Stock" : "Out of Stock"}
+                  </p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit}>
@@ -290,7 +359,7 @@ const ProductsPage: React.FC = () => {
                       type="text"
                       name="name"
                       className="form-input"
-                      defaultValue={selectedProduct?.name || ''}
+                      defaultValue={selectedProduct?.name || ""}
                       required
                     />
                   </div>
@@ -300,7 +369,7 @@ const ProductsPage: React.FC = () => {
                     <textarea
                       name="description"
                       className="form-textarea"
-                      defaultValue={selectedProduct?.description || ''}
+                      defaultValue={selectedProduct?.description || ""}
                       required
                     />
                   </div>
@@ -313,7 +382,7 @@ const ProductsPage: React.FC = () => {
                         step="0.01"
                         name="price"
                         className="form-input"
-                        defaultValue={selectedProduct?.price || ''}
+                        defaultValue={selectedProduct?.price || ""}
                         required
                       />
                     </div>
@@ -325,7 +394,7 @@ const ProductsPage: React.FC = () => {
                         step="0.01"
                         name="originalPrice"
                         className="form-input"
-                        defaultValue={selectedProduct?.originalPrice || ''}
+                        defaultValue={selectedProduct?.originalPrice || ""}
                       />
                     </div>
                   </div>
@@ -336,7 +405,7 @@ const ProductsPage: React.FC = () => {
                       type="url"
                       name="image"
                       className="form-input"
-                      defaultValue={selectedProduct?.image || ''}
+                      defaultValue={selectedProduct?.image || ""}
                       required
                     />
                   </div>
@@ -347,7 +416,7 @@ const ProductsPage: React.FC = () => {
                       type="text"
                       name="category"
                       className="form-input"
-                      defaultValue={selectedProduct?.category || ''}
+                      defaultValue={selectedProduct?.category || ""}
                       required
                     />
                   </div>
@@ -357,7 +426,7 @@ const ProductsPage: React.FC = () => {
                     <textarea
                       name="specifications"
                       className="form-textarea"
-                      defaultValue={selectedProduct?.specifications || ''}
+                      defaultValue={selectedProduct?.specifications || ""}
                       required
                     />
                   </div>
@@ -367,7 +436,7 @@ const ProductsPage: React.FC = () => {
                     <textarea
                       name="packageContent"
                       className="form-textarea"
-                      defaultValue={selectedProduct?.packageContent || ''}
+                      defaultValue={selectedProduct?.packageContent || ""}
                       required
                     />
                   </div>
@@ -377,7 +446,7 @@ const ProductsPage: React.FC = () => {
                     <select
                       name="inStock"
                       className="form-select"
-                      defaultValue={selectedProduct?.inStock ? 'true' : 'false'}
+                      defaultValue={selectedProduct?.inStock ? "true" : "false"}
                     >
                       <option value="true">In Stock</option>
                       <option value="false">Out of Stock</option>
@@ -395,9 +464,14 @@ const ProductsPage: React.FC = () => {
                     <button
                       type="submit"
                       className="btn btn-primary"
-                      disabled={createProductMutation.isPending || updateProductMutation.isPending}
+                      disabled={
+                        createProductMutation.isPending ||
+                        updateProductMutation.isPending
+                      }
                     >
-                      {modalMode === 'create' ? 'Create Product' : 'Update Product'}
+                      {modalMode === "create"
+                        ? "Create Product"
+                        : "Update Product"}
                     </button>
                   </div>
                 </form>
@@ -406,144 +480,6 @@ const ProductsPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .products-page {
-          max-width: 1200px;
-        }
-
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-          font-size: 2rem;
-          font-weight: 600;
-          color: var(--text-color);
-        }
-
-        .filters-section {
-          margin-bottom: 2rem;
-        }
-
-        .search-container {
-          position: relative;
-          max-width: 300px;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          color: var(--text-light);
-        }
-
-        .search-input {
-          padding-left: 3rem;
-        }
-
-        .product-image {
-          width: 50px;
-          height: 50px;
-          object-fit: cover;
-          border-radius: 4px;
-        }
-
-        .product-name {
-          font-weight: 600;
-          color: var(--text-color);
-        }
-
-        .product-id {
-          font-size: 0.75rem;
-          color: var(--text-light);
-        }
-
-        .category-badge {
-          background: var(--background-dark);
-          color: var(--text-color);
-          padding: 0.25rem 0.5rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 500;
-        }
-
-        .price {
-          font-weight: 600;
-          color: var(--primary-color);
-        }
-
-        .original-price {
-          font-size: 0.75rem;
-          color: var(--text-light);
-          text-decoration: line-through;
-        }
-
-        .rating {
-          font-size: 0.875rem;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .pagination {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 1rem;
-          margin-top: 2rem;
-        }
-
-        .pagination-info {
-          font-size: 0.875rem;
-          color: var(--text-light);
-        }
-
-        .detail-image {
-          width: 200px;
-          height: 200px;
-          object-fit: cover;
-          border-radius: 8px;
-          margin-bottom: 1rem;
-        }
-
-        .product-details h3 {
-          font-size: 1.5rem;
-          margin-bottom: 1rem;
-          color: var(--text-color);
-        }
-
-        .product-details p {
-          margin-bottom: 0.5rem;
-          line-height: 1.6;
-        }
-
-        @media (max-width: 768px) {
-          .page-header {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-          }
-
-          .table-container {
-            overflow-x: auto;
-          }
-
-          .table {
-            min-width: 800px;
-          }
-
-          .action-buttons {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </div>
   );
 };
