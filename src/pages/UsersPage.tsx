@@ -1,80 +1,107 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
-import { FaEye, FaEdit, FaTrash, FaSearch, FaUserShield } from 'react-icons/fa';
-import { adminService } from '../services/adminService';
-import { User } from '../types';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { FaEye, FaEdit, FaTrash, FaSearch, FaUserShield } from "react-icons/fa";
+import apiUrl from "../utils/apiUrl";
+import { User } from "../types";
 
 const UsersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
-  
+  const [modalMode, setModalMode] = useState<"view" | "edit">("view");
+
   const queryClient = useQueryClient();
   const limit = 10;
 
   const { data: usersData, isLoading } = useQuery({
-    queryKey: ['users', currentPage, searchTerm],
-    queryFn: () => adminService.getUsers({
-      page: currentPage,
-      limit,
-      search: searchTerm,
-      sortBy: 'createdAt',
-      sortOrder: 'desc'
-    }),
+    queryKey: ["users", currentPage, searchTerm],
+    queryFn: async () => {
+      const response = await axios.get(`${apiUrl}/admin/users`, {
+        params: {
+          page: currentPage,
+          limit,
+          search: searchTerm,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        },
+        withCredentials: true,
+      });
+      return response.data;
+    },
   });
 
   const deleteUserMutation = useMutation({
-    mutationFn: adminService.deleteUser,
+    mutationFn: async (id: string) => {
+      await axios.delete(`${apiUrl}/admin/users/${id}`, {
+        withCredentials: true,
+      });
+    },
     onSuccess: () => {
-      toast.success('User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("User deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to delete user');
+      toast.error(error.response?.data?.message || "Failed to delete user");
     },
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ id, user }: { id: string; user: Partial<User> }) =>
-      adminService.updateUser(id, user),
+    mutationFn: async ({ id, user }: { id: string; user: Partial<User> }) => {
+      const response = await axios.put(`${apiUrl}/admin/users/${id}`, user, {
+        withCredentials: true,
+      });
+      return response.data;
+    },
     onSuccess: () => {
-      toast.success('User updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success("User updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       setShowModal(false);
       setSelectedUser(null);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update user');
+      toast.error(error.response?.data?.message || "Failed to update user");
     },
   });
 
-  const handleViewUser = async (userId: string) => {
-    try {
-      const user = await adminService.getUser(userId);
-      setSelectedUser(user);
-      setModalMode('view');
-      setShowModal(true);
-    } catch (error) {
-      toast.error('Failed to load user details');
-    }
-  };
+const handleViewUser = async (userId: string) => {
+  try {
+    const response = await axios.get(`${apiUrl}/admin/users/${userId}`, {
+      withCredentials: true,
+    });
+    const user = response.data;
 
-  const handleEditUser = async (userId: string) => {
-    try {
-      const user = await adminService.getUser(userId);
-      setSelectedUser(user);
-      setModalMode('edit');
-      setShowModal(true);
-    } catch (error) {
-      toast.error('Failed to load user details');
-    }
-  };
+    setSelectedUser(user);
+    setModalMode("view");
+    setShowModal(true);
+  } catch (error) {
+    toast.error("Failed to load user details");
+  }
+};
+
+const handleEditUser = async (userId: string) => {
+  try {
+    const response = await axios.get(`${apiUrl}/admin/users/${userId}`, {
+      withCredentials: true,
+    });
+    const user = response.data;
+
+    setSelectedUser(user);
+    setModalMode("edit");
+    setShowModal(true);
+  } catch (error) {
+    toast.error("Failed to load user details");
+  }
+};
 
   const handleDeleteUser = (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this user? This action cannot be undone."
+      )
+    ) {
       deleteUserMutation.mutate(userId);
     }
   };
@@ -85,23 +112,23 @@ const UsersPage: React.FC = () => {
 
     const formData = new FormData(e.currentTarget);
     const userData = {
-      fullName: formData.get('fullName') as string,
-      emailAddress: formData.get('emailAddress') as string,
-      phoneNumber: formData.get('phoneNumber') as string,
-      county: formData.get('county') as string,
-      town: formData.get('town') as string,
-      shippingCharge: parseFloat(formData.get('shippingCharge') as string),
-      isAdmin: formData.get('isAdmin') === 'true',
+      fullName: formData.get("fullName") as string,
+      emailAddress: formData.get("emailAddress") as string,
+      phoneNumber: formData.get("phoneNumber") as string,
+      county: formData.get("county") as string,
+      town: formData.get("town") as string,
+      shippingCharge: parseFloat(formData.get("shippingCharge") as string),
+      isAdmin: formData.get("isAdmin") === "true",
     };
 
     updateUserMutation.mutate({ id: selectedUser.id, user: userData });
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -114,7 +141,7 @@ const UsersPage: React.FC = () => {
     );
   }
 
-  const users = usersData?.data || [];
+  const users: User[] = usersData?.data || [];
   const totalPages = Math.ceil((usersData?.total || 0) / limit);
 
   return (
@@ -129,7 +156,7 @@ const UsersPage: React.FC = () => {
           </div>
           <div className="stat-item">
             <span className="stat-value">
-              {users.filter(user => user.isAdmin).length}
+              {users.filter((user) => user.isAdmin).length}
             </span>
             <span className="stat-label">Admins</span>
           </div>
@@ -171,7 +198,9 @@ const UsersPage: React.FC = () => {
                   <div className="user-info">
                     <div className="user-name">
                       {user.fullName}
-                      {user.isAdmin && <FaUserShield className="admin-icon" title="Admin" />}
+                      {user.isAdmin && (
+                        <FaUserShield className="admin-icon" title="Admin" />
+                      )}
                     </div>
                     <div className="user-id">ID: {user.id.slice(0, 8)}</div>
                   </div>
@@ -192,13 +221,21 @@ const UsersPage: React.FC = () => {
                   <div className="join-date">{formatDate(user.createdAt)}</div>
                 </td>
                 <td>
-                  <span className={`role-badge ${user.isAdmin ? 'role-admin' : 'role-user'}`}>
-                    {user.isAdmin ? 'Admin' : 'Customer'}
+                  <span
+                    className={`role-badge ${
+                      user.isAdmin ? "role-admin" : "role-user"
+                    }`}
+                  >
+                    {user.isAdmin ? "Admin" : "Customer"}
                   </span>
                 </td>
                 <td>
-                  <span className={`status-badge ${user.isDeleted ? 'status-deleted' : 'status-active'}`}>
-                    {user.isDeleted ? 'Deleted' : 'Active'}
+                  <span
+                    className={`status-badge ${
+                      user.isDeleted ? "status-deleted" : "status-active"
+                    }`}
+                  >
+                    {user.isDeleted ? "Deleted" : "Active"}
                   </span>
                 </td>
                 <td>
@@ -238,7 +275,7 @@ const UsersPage: React.FC = () => {
         <div className="pagination">
           <button
             className="btn btn-secondary"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             Previous
@@ -248,7 +285,9 @@ const UsersPage: React.FC = () => {
           </span>
           <button
             className="btn btn-secondary"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Next
@@ -262,7 +301,7 @@ const UsersPage: React.FC = () => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
-                {modalMode === 'view' ? 'User Details' : 'Edit User'}
+                {modalMode === "view" ? "User Details" : "Edit User"}
               </h3>
               <button
                 className="modal-close"
@@ -271,9 +310,9 @@ const UsersPage: React.FC = () => {
                 ×
               </button>
             </div>
-            
+
             <div className="modal-body">
-              {modalMode === 'view' ? (
+              {modalMode === "view" ? (
                 <div className="user-details">
                   <div className="detail-section">
                     <h4>Personal Information</h4>
@@ -288,9 +327,13 @@ const UsersPage: React.FC = () => {
                         <strong>Phone:</strong> {selectedUser.phoneNumber}
                       </div>
                       <div>
-                        <strong>Role:</strong> 
-                        <span className={`role-badge ${selectedUser.isAdmin ? 'role-admin' : 'role-user'}`}>
-                          {selectedUser.isAdmin ? 'Admin' : 'Customer'}
+                        <strong>Role:</strong>
+                        <span
+                          className={`role-badge ${
+                            selectedUser.isAdmin ? "role-admin" : "role-user"
+                          }`}
+                        >
+                          {selectedUser.isAdmin ? "Admin" : "Customer"}
                         </span>
                       </div>
                     </div>
@@ -306,7 +349,8 @@ const UsersPage: React.FC = () => {
                         <strong>Town:</strong> {selectedUser.town}
                       </div>
                       <div>
-                        <strong>Shipping Charge:</strong> ${selectedUser.shippingCharge}
+                        <strong>Shipping Charge:</strong> $
+                        {selectedUser.shippingCharge}
                       </div>
                     </div>
                   </div>
@@ -318,15 +362,23 @@ const UsersPage: React.FC = () => {
                         <strong>User ID:</strong> {selectedUser.id}
                       </div>
                       <div>
-                        <strong>Joined:</strong> {formatDate(selectedUser.createdAt)}
+                        <strong>Joined:</strong>{" "}
+                        {formatDate(selectedUser.createdAt)}
                       </div>
                       <div>
-                        <strong>Last Updated:</strong> {formatDate(selectedUser.updatedAt)}
+                        <strong>Last Updated:</strong>{" "}
+                        {formatDate(selectedUser.updatedAt)}
                       </div>
                       <div>
-                        <strong>Status:</strong> 
-                        <span className={`status-badge ${selectedUser.isDeleted ? 'status-deleted' : 'status-active'}`}>
-                          {selectedUser.isDeleted ? 'Deleted' : 'Active'}
+                        <strong>Status:</strong>
+                        <span
+                          className={`status-badge ${
+                            selectedUser.isDeleted
+                              ? "status-deleted"
+                              : "status-active"
+                          }`}
+                        >
+                          {selectedUser.isDeleted ? "Deleted" : "Active"}
                         </span>
                       </div>
                     </div>
@@ -408,7 +460,7 @@ const UsersPage: React.FC = () => {
                     <select
                       name="isAdmin"
                       className="form-select"
-                      defaultValue={selectedUser.isAdmin ? 'true' : 'false'}
+                      defaultValue={selectedUser.isAdmin ? "true" : "false"}
                     >
                       <option value="false">Customer</option>
                       <option value="true">Admin</option>
@@ -437,218 +489,6 @@ const UsersPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .users-page {
-          max-width: 1400px;
-        }
-
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 2rem;
-        }
-
-        .page-header h1 {
-          font-size: 2rem;
-          font-weight: 600;
-          color: var(--text-color);
-        }
-
-        .stats-summary {
-          display: flex;
-          gap: 2rem;
-        }
-
-        .stat-item {
-          text-align: center;
-        }
-
-        .stat-value {
-          display: block;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--primary-color);
-        }
-
-        .stat-label {
-          font-size: 0.875rem;
-          color: var(--text-light);
-        }
-
-        .filters-section {
-          margin-bottom: 2rem;
-        }
-
-        .search-container {
-          position: relative;
-          max-width: 400px;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          color: var(--text-light);
-        }
-
-        .search-input {
-          padding-left: 3rem;
-        }
-
-        .user-info {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .user-name {
-          font-weight: 600;
-          color: var(--text-color);
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
-
-        .admin-icon {
-          color: var(--warning-color);
-          font-size: 0.875rem;
-        }
-
-        .user-id {
-          font-size: 0.75rem;
-          color: var(--text-light);
-        }
-
-        .contact-email {
-          font-size: 0.875rem;
-          color: var(--text-color);
-        }
-
-        .contact-phone {
-          font-size: 0.75rem;
-          color: var(--text-light);
-        }
-
-        .location {
-          font-size: 0.875rem;
-          color: var(--text-color);
-        }
-
-        .location-county {
-          font-size: 0.75rem;
-          color: var(--text-light);
-        }
-
-        .join-date {
-          font-size: 0.875rem;
-        }
-
-        .role-badge {
-          padding: 0.25rem 0.5rem;
-          border-radius: 12px;
-          font-size: 0.75rem;
-          font-weight: 500;
-          text-transform: uppercase;
-        }
-
-        .role-admin {
-          background: var(--warning-color);
-          color: #856404;
-        }
-
-        .role-user {
-          background: var(--info-color);
-          color: white;
-        }
-
-        .status-active {
-          background: var(--success-color);
-          color: white;
-        }
-
-        .status-deleted {
-          background: var(--danger-color);
-          color: white;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .action-buttons .btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .pagination {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 1rem;
-          margin-top: 2rem;
-        }
-
-        .pagination-info {
-          font-size: 0.875rem;
-          color: var(--text-light);
-        }
-
-        .user-details {
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
-        }
-
-        .detail-section h4 {
-          font-size: 1.25rem;
-          margin-bottom: 1rem;
-          color: var(--text-color);
-          border-bottom: 2px solid var(--border-color);
-          padding-bottom: 0.5rem;
-        }
-
-        .detail-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 1rem;
-        }
-
-        .detail-grid > div {
-          font-size: 0.875rem;
-          line-height: 1.6;
-        }
-
-        @media (max-width: 768px) {
-          .page-header {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: stretch;
-          }
-
-          .stats-summary {
-            justify-content: center;
-          }
-
-          .table-container {
-            overflow-x: auto;
-          }
-
-          .table {
-            min-width: 900px;
-          }
-
-          .action-buttons {
-            flex-direction: column;
-          }
-
-          .detail-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
     </div>
   );
 };
