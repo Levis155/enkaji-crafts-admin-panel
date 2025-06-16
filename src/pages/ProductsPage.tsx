@@ -216,10 +216,10 @@ const ProductsPage: React.FC = () => {
                 </td>
                 <td>
                   <div>
-                    <div className="price">${product.price}</div>
+                    <div className="price">KES {product.price}</div>
                     {product.originalPrice && (
                       <div className="original-price">
-                        ${product.originalPrice}
+                        KES {product.originalPrice}
                       </div>
                     )}
                   </div>
@@ -327,12 +327,11 @@ const ProductsPage: React.FC = () => {
                     <strong>Category:</strong> {selectedProduct?.category}
                   </p>
                   <p>
-                    <strong>Price:</strong> ${selectedProduct?.price}
+                    <strong>Price:</strong> KES {selectedProduct?.price}
                   </p>
                   {selectedProduct?.originalPrice && (
                     <p>
-                      <strong>Original Price:</strong> $
-                      {selectedProduct.originalPrice}
+                      <strong>Original Price:</strong> KES {selectedProduct.originalPrice}
                     </p>
                   )}
                   <p>

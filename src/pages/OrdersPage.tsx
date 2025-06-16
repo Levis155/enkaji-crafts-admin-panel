@@ -189,7 +189,7 @@ const OrdersPage: React.FC = () => {
                 </td>
                 <td>
                   <div className="total-price">
-                    ${order.totalPrice.toFixed(2)}
+                    KES {order.totalPrice.toFixed(2)}
                   </div>
                 </td>
                 <td>
@@ -348,9 +348,9 @@ const OrdersPage: React.FC = () => {
                           <div className="item-name">{item.name}</div>
                           <div className="item-info">
                             <span>Qty: {item.quantity}</span>
-                            <span>Price: ${item.price}</span>
+                            <span>Price: KES {item.price}</span>
                             <span>
-                              Total: ${(item.quantity * item.price).toFixed(2)}
+                              Total: KES {(item.quantity * item.price).toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -359,7 +359,7 @@ const OrdersPage: React.FC = () => {
                   </div>
                   <div className="order-total">
                     <strong>
-                      Total Amount: ${selectedOrder.totalPrice.toFixed(2)}
+                      Total Amount: KES {selectedOrder.totalPrice.toFixed(2)}
                     </strong>
                   </div>
                 </div>

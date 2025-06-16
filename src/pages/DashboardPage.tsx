@@ -95,7 +95,7 @@ const { data: topProducts } = useQuery({
     },
     {
       title: "Total Revenue",
-      value: `$${(stats?.totalRevenue || 0).toLocaleString()}`,
+      value: `KES ${(stats?.totalRevenue || 0).toLocaleString()}`,
       icon: FaDollarSign,
       color: "orange",
       change: "+25%",
