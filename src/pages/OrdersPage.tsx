@@ -78,16 +78,16 @@ const OrdersPage: React.FC = () => {
     switch (status.toLowerCase()) {
       case "pending":
         return "status-pending";
-      case "processing":
-        return "status-processing";
+      case "processed":
+        return "status-processed";
       case "shipped":
         return "status-shipped";
       case "delivered":
         return "status-completed";
       case "cancelled":
-        return "status-cancelled";
+        return "status-failed";
       default:
-        return "status-pending";
+        return "status-failed";
     }
   };
 
@@ -140,10 +140,10 @@ const OrdersPage: React.FC = () => {
         >
           <option value="">All Status</option>
           <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
+          <option value="processed">Processed</option>
           <option value="shipped">Shipped</option>
           <option value="delivered">Delivered</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="failed">Failed</option>
         </select>
       </div>
 
@@ -201,10 +201,10 @@ const OrdersPage: React.FC = () => {
                     className={`status-select ${getStatusColor(order.status)}`}
                   >
                     <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
+                    <option value="processed">Processed</option>
                     <option value="shipped">Shipped</option>
                     <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="failed">Failed</option>
                   </select>
                 </td>
                 <td>
