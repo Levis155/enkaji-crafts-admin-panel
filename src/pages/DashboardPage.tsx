@@ -48,7 +48,7 @@ const { data: salesData } = useQuery({
 });
 
 const { data: topProducts } = useQuery({
-  queryKey: ["top-products", 10], // pass limit as part of the key
+  queryKey: ["top-products", 10], 
   queryFn: async ({ queryKey }) => {
     const [, limit] = queryKey as [string, number];
     const response = await axios.get(
