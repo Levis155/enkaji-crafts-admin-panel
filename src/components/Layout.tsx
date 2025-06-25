@@ -11,6 +11,9 @@ import {
   FaBars,
   FaTimes
 } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import apiUrl from '../utils/apiUrl';
 import useUserStore from '../stores/userStore';
 import { useState } from 'react';
 
@@ -29,8 +32,16 @@ const Layout: React.FC = () => {
     { path: '/settings', label: 'Settings', icon: FaCog },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async() => {
+  try {
+    await axios.post(`${apiUrl}/admin/auth/logout`, {}, { withCredentials: true }),
+    toast.success("Logged out successfully.");
+  } catch (error) {
+    console.error("Error during logout", error);
+    toast.error("Logout failed.");
+  } finally {
     removeUserInfo();
+  }
   };
 
   return (
