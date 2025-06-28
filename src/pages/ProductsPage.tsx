@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from "react-icons/fa";
+import ReactMarkdown from "react-markdown";
 import apiUrl from "../utils/apiUrl";
 import { Product } from "../types";
 import "../styles/AdminProducts.css";
@@ -194,7 +195,7 @@ const ProductsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product:Product) => (
+            {products.map((product: Product) => (
               <tr key={product.id}>
                 <td>
                   <img
@@ -331,19 +332,24 @@ const ProductsPage: React.FC = () => {
                   </p>
                   {selectedProduct?.originalPrice && (
                     <p>
-                      <strong>Original Price:</strong> KES {selectedProduct.originalPrice}
+                      <strong>Original Price:</strong> KES{" "}
+                      {selectedProduct.originalPrice}
                     </p>
                   )}
                   <p>
                     <strong>Description:</strong> {selectedProduct?.description}
                   </p>
                   <p>
-                    <strong>Specifications:</strong>{" "}
-                    {selectedProduct?.specifications}
+                    <strong>Specifications:</strong> {}{" "}
+                    <ReactMarkdown>
+                      {selectedProduct?.specifications}
+                    </ReactMarkdown>
                   </p>
                   <p>
                     <strong>Package Content:</strong>{" "}
-                    {selectedProduct?.packageContent}
+                    <ReactMarkdown>
+                      {selectedProduct?.packageContent}
+                    </ReactMarkdown>
                   </p>
                   <p>
                     <strong>Status:</strong>{" "}
