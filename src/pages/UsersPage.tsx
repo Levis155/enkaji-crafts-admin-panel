@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaEye, FaEdit, FaTrash, FaSearch, FaUserShield } from "react-icons/fa";
-import apiUrl from "../utils/apiUrl";
+import axiosInstance from "../utils/axiosInstance";
 import { User } from "../types";
 
 const UsersPage: React.FC = () => {
@@ -19,7 +18,7 @@ const UsersPage: React.FC = () => {
   const { data: usersData, isLoading } = useQuery({
     queryKey: ["users", currentPage, searchTerm],
     queryFn: async () => {
-      const response = await axios.get(`${apiUrl}/admin/users`, {
+      const response = await axiosInstance.get(`/admin/users`, {
         params: {
           page: currentPage,
           limit,
@@ -27,7 +26,6 @@ const UsersPage: React.FC = () => {
           sortBy: "createdAt",
           sortOrder: "desc",
         },
-        withCredentials: true,
       });
       return response.data;
     },
@@ -35,9 +33,7 @@ const UsersPage: React.FC = () => {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.delete(`${apiUrl}/admin/users/${id}`, {
-        withCredentials: true,
-      });
+      await axiosInstance.delete(`/admin/users/${id}`);
     },
     onSuccess: () => {
       toast.success("User deleted successfully");
@@ -50,9 +46,7 @@ const UsersPage: React.FC = () => {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, user }: { id: string; user: Partial<User> }) => {
-      const response = await axios.put(`${apiUrl}/admin/users/${id}`, user, {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.put(`/admin/users/${id}`, user);
       return response.data;
     },
     onSuccess: () => {
@@ -66,35 +60,31 @@ const UsersPage: React.FC = () => {
     },
   });
 
-const handleViewUser = async (userId: string) => {
-  try {
-    const response = await axios.get(`${apiUrl}/admin/users/${userId}`, {
-      withCredentials: true,
-    });
-    const user = response.data;
+  const handleViewUser = async (userId: string) => {
+    try {
+      const response = await axiosInstance.get(`/admin/users/${userId}`);
+      const user = response.data;
 
-    setSelectedUser(user);
-    setModalMode("view");
-    setShowModal(true);
-  } catch (error) {
-    toast.error("Failed to load user details");
-  }
-};
+      setSelectedUser(user);
+      setModalMode("view");
+      setShowModal(true);
+    } catch (error) {
+      toast.error("Failed to load user details");
+    }
+  };
 
-const handleEditUser = async (userId: string) => {
-  try {
-    const response = await axios.get(`${apiUrl}/admin/users/${userId}`, {
-      withCredentials: true,
-    });
-    const user = response.data;
+  const handleEditUser = async (userId: string) => {
+    try {
+      const response = await axiosInstance.get(`/admin/users/${userId}`);
+      const user = response.data;
 
-    setSelectedUser(user);
-    setModalMode("edit");
-    setShowModal(true);
-  } catch (error) {
-    toast.error("Failed to load user details");
-  }
-};
+      setSelectedUser(user);
+      setModalMode("edit");
+      setShowModal(true);
+    } catch (error) {
+      toast.error("Failed to load user details");
+    }
+  };
 
   const handleDeleteUser = (userId: string) => {
     if (

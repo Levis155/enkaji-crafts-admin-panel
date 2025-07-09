@@ -1,57 +1,50 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { FaTrash, FaSearch, FaStar } from 'react-icons/fa';
-import apiUrl from '../utils/apiUrl';
-import { Review } from '../types';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import { FaTrash, FaSearch, FaStar } from "react-icons/fa";
+import axiosInstance from "../utils/axiosInstance";
+import { Review } from "../types";
 
 const ReviewsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [ratingFilter, setRatingFilter] = useState('');
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [ratingFilter, setRatingFilter] = useState("");
+
   const queryClient = useQueryClient();
   const limit = 10;
 
+  const { data: reviewsData, isLoading } = useQuery({
+    queryKey: ["reviews", currentPage, searchTerm, ratingFilter],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/admin/reviews`, {
+        params: {
+          page: currentPage,
+          limit,
+          search: searchTerm,
+          rating: ratingFilter,
+          sortBy: "createdAt",
+          sortOrder: "desc",
+        },
+      });
+      return response.data;
+    },
+  });
 
-const { data: reviewsData, isLoading } = useQuery({
-  queryKey: ['reviews', currentPage, searchTerm, ratingFilter],
-  queryFn: async () => {
-    const response = await axios.get(`${apiUrl}/admin/reviews`, {
-      params: {
-        page: currentPage,
-        limit,
-        search: searchTerm,
-        rating: ratingFilter,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-      },
-      withCredentials: true,
-    });
-    return response.data;
-  },
-});
-
-const deleteReviewMutation = useMutation({
-  mutationFn: async (id: string) => {
-    await axios.delete(`${apiUrl}/admin/reviews/${id}`, {
-      withCredentials: true,
-    });
-  },
-  onSuccess: () => {
-    toast.success('Review deleted successfully');
-    queryClient.invalidateQueries({ queryKey: ['reviews'] });
-  },
-  onError: (error: any) => {
-    toast.error(
-      error.response?.data?.message || 'Failed to delete review'
-    );
-  },
-});
+  const deleteReviewMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await axiosInstance.delete(`/admin/reviews/${id}`);
+    },
+    onSuccess: () => {
+      toast.success("Review deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to delete review");
+    },
+  });
 
   const handleDeleteReview = (reviewId: string) => {
-    if (window.confirm('Are you sure you want to delete this review?')) {
+    if (window.confirm("Are you sure you want to delete this review?")) {
       deleteReviewMutation.mutate(reviewId);
     }
   };
@@ -60,26 +53,26 @@ const deleteReviewMutation = useMutation({
     return Array.from({ length: 5 }, (_, index) => (
       <FaStar
         key={index}
-        className={index < rating ? 'star-filled' : 'star-empty'}
+        className={index < rating ? "star-filled" : "star-empty"}
       />
     ));
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getRatingColor = (rating: number) => {
-    if (rating >= 4) return 'rating-excellent';
-    if (rating >= 3) return 'rating-good';
-    if (rating >= 2) return 'rating-fair';
-    return 'rating-poor';
+    if (rating >= 4) return "rating-excellent";
+    if (rating >= 3) return "rating-good";
+    if (rating >= 2) return "rating-fair";
+    return "rating-poor";
   };
 
   if (isLoading) {
@@ -91,12 +84,12 @@ const deleteReviewMutation = useMutation({
     );
   }
 
-  const reviews:Review[] = reviewsData?.data || [];
+  const reviews: Review[] = reviewsData?.data || [];
   const totalPages = Math.ceil((reviewsData?.total || 0) / limit);
 
   // Filter by rating if selected
-  const filteredReviews = ratingFilter 
-    ? reviews.filter(review => review.rating === parseInt(ratingFilter))
+  const filteredReviews = ratingFilter
+    ? reviews.filter((review) => review.rating === parseInt(ratingFilter))
     : reviews;
 
   return (
@@ -111,10 +104,12 @@ const deleteReviewMutation = useMutation({
           </div>
           <div className="stat-item">
             <span className="stat-value">
-              {reviews.length > 0 
-                ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
-                : 'N/A'
-              }
+              {reviews.length > 0
+                ? (
+                    reviews.reduce((sum, review) => sum + review.rating, 0) /
+                    reviews.length
+                  ).toFixed(1)
+                : "N/A"}
             </span>
             <span className="stat-label">Avg Rating</span>
           </div>
@@ -133,7 +128,7 @@ const deleteReviewMutation = useMutation({
             className="search-input"
           />
         </div>
-        
+
         <select
           value={ratingFilter}
           onChange={(e) => setRatingFilter(e.target.value)}
@@ -155,11 +150,15 @@ const deleteReviewMutation = useMutation({
             <div className="review-header">
               <div className="review-info">
                 <div className="reviewer-name">{review.reviewAuthor}</div>
-                <div className="review-date">{formatDate(review.createdAt)}</div>
+                <div className="review-date">
+                  {formatDate(review.createdAt)}
+                </div>
               </div>
-              
+
               <div className="review-actions">
-                <div className={`rating-display ${getRatingColor(review.rating)}`}>
+                <div
+                  className={`rating-display ${getRatingColor(review.rating)}`}
+                >
                   {renderStars(review.rating)}
                   <span className="rating-number">({review.rating})</span>
                 </div>
@@ -175,14 +174,16 @@ const deleteReviewMutation = useMutation({
 
             <div className="review-content">
               <div className="product-info">
-                <img 
-                  src={review.product.image} 
+                <img
+                  src={review.product.image}
                   alt={review.product.name}
                   className="product-thumbnail"
                 />
                 <div>
                   <div className="product-name">{review.product.name}</div>
-                  <div className="product-category">{review.product.category}</div>
+                  <div className="product-category">
+                    {review.product.category}
+                  </div>
                 </div>
               </div>
 
@@ -193,8 +194,12 @@ const deleteReviewMutation = useMutation({
 
               <div className="review-meta">
                 <div className="reviewer-details">
-                  <span className="reviewer-email">{review.user.emailAddress}</span>
-                  <span className="review-id">Review ID: {review.id.slice(0, 8)}</span>
+                  <span className="reviewer-email">
+                    {review.user.emailAddress}
+                  </span>
+                  <span className="review-id">
+                    Review ID: {review.id.slice(0, 8)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -213,7 +218,7 @@ const deleteReviewMutation = useMutation({
         <div className="pagination">
           <button
             className="btn btn-secondary"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             Previous
@@ -223,7 +228,9 @@ const deleteReviewMutation = useMutation({
           </span>
           <button
             className="btn btn-secondary"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Next

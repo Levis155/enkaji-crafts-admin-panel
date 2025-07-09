@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
-import apiUrl from "../utils/apiUrl";
+import axiosInstance from "../utils/axiosInstance";
 import { Product } from "../types";
 import "../styles/AdminProducts.css";
 
@@ -23,13 +22,12 @@ const ProductsPage: React.FC = () => {
   const { data: productsData, isLoading } = useQuery({
     queryKey: ["products", currentPage, searchTerm],
     queryFn: async () => {
-      const response = await axios.get(`${apiUrl}/admin/products`, {
+      const response = await axiosInstance.get(`/admin/products`, {
         params: {
           page: currentPage,
           limit,
           search: searchTerm,
         },
-        withCredentials: true,
       });
       return response.data;
     },
@@ -37,9 +35,7 @@ const ProductsPage: React.FC = () => {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.delete(`${apiUrl}/admin/products/${id}`, {
-        withCredentials: true,
-      });
+      await axiosInstance.delete(`/admin/products/${id}`);
     },
     onSuccess: () => {
       toast.success("Product deleted successfully");
@@ -52,9 +48,7 @@ const ProductsPage: React.FC = () => {
 
   const createProductMutation = useMutation({
     mutationFn: async (product: Partial<Product>) => {
-      const response = await axios.post(`${apiUrl}/admin/products`, product, {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.post(`/admin/products`, product);
       return response.data;
     },
     onSuccess: () => {
@@ -76,10 +70,9 @@ const ProductsPage: React.FC = () => {
       id: string;
       product: Partial<Product>;
     }) => {
-      const response = await axios.put(
-        `${apiUrl}/admin/products/${id}`,
-        product,
-        { withCredentials: true }
+      const response = await axiosInstance.put(
+        `/admin/products/${id}`,
+        product
       );
       return response.data;
     },

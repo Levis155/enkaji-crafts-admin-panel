@@ -35,7 +35,6 @@ const SettingsPage: React.FC = () => {
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would normally call an API to update the profile
     toast.success('Profile updated successfully');
   };
 

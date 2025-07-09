@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { FaEye, FaSearch } from "react-icons/fa";
-import apiUrl from "../utils/apiUrl";
+import axiosInstance from "../utils/axiosInstance";
 import { Order } from "../types";
 import "../styles/AdminOrders.css";
 
@@ -20,7 +19,7 @@ const OrdersPage: React.FC = () => {
   const { data: ordersData, isLoading } = useQuery({
     queryKey: ["orders", currentPage, searchTerm, statusFilter],
     queryFn: async () => {
-      const response = await axios.get(`${apiUrl}/admin/orders`, {
+      const response = await axiosInstance.get(`/admin/orders`, {
         params: {
           page: currentPage,
           limit,
@@ -29,7 +28,6 @@ const OrdersPage: React.FC = () => {
           sortBy: "createdAt",
           sortOrder: "desc",
         },
-        withCredentials: true,
       });
       return response.data;
     },
@@ -37,11 +35,9 @@ const OrdersPage: React.FC = () => {
 
   const updateOrderStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const response = await axios.put(
-        `${apiUrl}/admin/orders/${id}/status`,
-        { status },
-        { withCredentials: true }
-      );
+      const response = await axiosInstance.put(`/admin/orders/${id}/status`, {
+        status,
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -57,9 +53,7 @@ const OrdersPage: React.FC = () => {
 
   const handleViewOrder = async (orderId: string) => {
     try {
-      const response = await axios.get(`${apiUrl}/admin/orders/${orderId}`, {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.get(`/admin/orders/${orderId}`);
 
       setSelectedOrder(response.data);
       setShowModal(true);
@@ -350,7 +344,8 @@ const OrdersPage: React.FC = () => {
                             <span>Qty: {item.quantity}</span>
                             <span>Price: KES {item.price}</span>
                             <span>
-                              Total: KES {(item.quantity * item.price).toFixed(2)}
+                              Total: KES{" "}
+                              {(item.quantity * item.price).toFixed(2)}
                             </span>
                           </div>
                         </div>

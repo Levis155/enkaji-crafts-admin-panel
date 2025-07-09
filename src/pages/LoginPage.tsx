@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Alert, CircularProgress } from "@mui/material";
-import apiUrl from "../utils/apiUrl";
 import useUserStore from "../stores/userStore";
 import { LoginCredentials } from "../types";
 import "../styles/LoginPage.css";
+import axiosInstance from "../utils/axiosInstance";
 
 const LoginPage: React.FC = () => {
   const setUserInfo = useUserStore((state) => state.setUserInfo);
-  const user = useUserStore((state) => state.user);
   const [formError, setFormError] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     emailAddress: "",
@@ -21,9 +20,7 @@ const LoginPage: React.FC = () => {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      const response = await axios.post(`${apiUrl}/admin/auth/login`, credentials, {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.post(`/admin/auth/login`, credentials,);
       return response.data;
     },
     onSuccess: (data) => {
@@ -40,10 +37,6 @@ const LoginPage: React.FC = () => {
       }
     },
   });
-
-  useEffect(() => {
-    console.log("User updated:", user);
-  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

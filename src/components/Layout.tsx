@@ -12,8 +12,7 @@ import {
   FaTimes
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import axios from 'axios';
-import apiUrl from '../utils/apiUrl';
+import axiosInstance from '../utils/axiosInstance';
 import useUserStore from '../stores/userStore';
 import { useState } from 'react';
 
@@ -34,7 +33,7 @@ const Layout: React.FC = () => {
 
   const handleLogout = async() => {
   try {
-    await axios.post(`${apiUrl}/admin/auth/logout`, {}, { withCredentials: true }),
+    await axiosInstance.post(`/admin/auth/logout`, {}),
     toast.success("Logged out successfully.");
   } catch (error) {
     console.error("Error during logout", error);

@@ -1,6 +1,5 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import {
   FaUsers,
   FaBox,
@@ -10,7 +9,6 @@ import {
   FaArrowDown,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import apiUrl from "../utils/apiUrl";
 import {
   LineChart,
   Line,
@@ -22,15 +20,14 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import axiosInstance from "../utils/axiosInstance";
 import "../styles/AdminDashboard.css";
 
 const DashboardPage: React.FC = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const response = await axios.get(`${apiUrl}/admin/dashboard/stats`, {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.get(`/admin/dashboard/stats`);
       return response.data;
     },
   });
@@ -38,11 +35,9 @@ const DashboardPage: React.FC = () => {
 const { data: salesData } = useQuery({
   queryKey: ["sales-data", "30d"],
   queryFn: async ({ queryKey }) => {
-    const [, period] = queryKey; // destructure the "30d" value
-    const response = await axios.get(
-      `${apiUrl}/admin/analytics/sales?period=${period}`,
-      { withCredentials: true }
-    );
+    const [, period] = queryKey;
+    const response = await axiosInstance.get(
+      `/admin/analytics/sales?period=${period}`);
     return response.data;
   },
 });
@@ -51,10 +46,8 @@ const { data: topProducts } = useQuery({
   queryKey: ["top-products", 10], 
   queryFn: async ({ queryKey }) => {
     const [, limit] = queryKey as [string, number];
-    const response = await axios.get(
-      `${apiUrl}/admin/analytics/top-products?limit=${limit}`,
-      { withCredentials: true }
-    );
+    const response = await axiosInstance.get(
+      `/admin/analytics/top-products?limit=${limit}`);
     return response.data;
   },
 });
