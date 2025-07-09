@@ -3,7 +3,7 @@ import apiUrl from "./apiUrl";
 
 const axiosInstance = axios.create({
   baseURL: apiUrl,
-  withCredentials: true, 
+  withCredentials: true,
 });
 
 axiosInstance.interceptors.response.use(
@@ -11,10 +11,7 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -22,10 +19,12 @@ axiosInstance.interceptors.response.use(
           withCredentials: true,
         });
 
-        return axiosInstance(originalRequest); 
+        return axiosInstance(originalRequest);
       } catch (refreshError) {
         console.error("Refresh failed:", refreshError);
-        window.location.href = "/login"; 
+        const currentPath = window.location.pathname + window.location.search;
+        localStorage.setItem("redirectAfterLogin", currentPath);
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }

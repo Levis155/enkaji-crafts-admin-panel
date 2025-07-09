@@ -20,13 +20,23 @@ const LoginPage: React.FC = () => {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      const response = await axiosInstance.post(`/admin/auth/login`, credentials,);
+      const response = await axiosInstance.post(
+        `/admin/auth/login`,
+        credentials
+      );
       return response.data;
     },
     onSuccess: (data) => {
       setUserInfo(data);
       toast.success("Logged in successfully.");
-      navigate("/");
+      
+      const redirectPath = localStorage.getItem("redirectAfterLogin");
+      if (redirectPath) {
+        localStorage.removeItem("redirectAfterLogin");
+        navigate(redirectPath);
+      } else {
+        navigate("/");
+      }
     },
     onError: (err) => {
       if (axios.isAxiosError(err)) {
